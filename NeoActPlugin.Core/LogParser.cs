@@ -1,23 +1,22 @@
-﻿using NeoActPlugin.Common;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
+using NeoActPlugin.Common;
 
 namespace NeoActPlugin.Core
 {
     public static class LogParser
     {
-        public static Regex regex_incomingdamage1 = new Regex(@"(?<target>.+?)?( received|Received) (?<damage>\d+(,\d+)*) ((?<critical>Critical) )?damage((,)?( and)? (?<HPDrain>\d+(,\d+)*) HP drain)?((,)?( and)? (?<FocusDrain>\d+) Focus drain)?((,)?( and)? (?<debuff>.+?))? from ((?<actor>.+?)&apos;s )?(?<skill>.+?)((,)?( but)? resisted (?<resistdebuff>.+?)( effect)?)?\.", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public static Regex regex_incomingdamage2 = new Regex(@"((?<target>.+?) )?(Blocked|blocked|partially blocked|countered)( (?<actor>.+)&apos;s)? (?<skill>.+?) (but received|receiving)( (?<damage>\d+(,\d+)*) damage)?(( and)? (?<HPDrain>\d+(,\d+)*) HP drain)?( and?)?( (?<debuff>.+?))?\.", RegexOptions.Compiled);
-        public static Regex regex_incomingdamage3 = new Regex(@"(?<actor>.+?)&apos;s (?<skill>.+?) inflicted( (?<damage>\d+(,\d+)*) damage)?( and)?( (?<debuff>.+?))*?( to (?<target>.+?))?\.", RegexOptions.Compiled);
-        public static Regex regex_yourdamage = new Regex(@"(?<skill>.+?)\s+(?<critical>(critically hit)|(hit))\s+(?<target>.+?)\s+for\s+(?<damage>\d+(,\d+)*)\s+damage(((, draining| and drained)\s+((?<HPDrain>\d+(,\d+)*)\s+HP)?(\s+and\s+)?((?<FocusDrain>\d+)\s+Focus)?))?(,\s+removing\s+(?<skillremove>.+?))?\.", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public static Regex regex_debuff2 = new Regex(@"((?<actor>.+?)&apos;s )?(?<skill>.+?)( (?<critical>(critically hit)|(hit)) (?<target>.+?))? ((and )?inflicted (?<debuff>.+?))?(but (?<debuff2>.+?) was resisted)?\.", RegexOptions.Compiled);
-        public static Regex regex_evade = new Regex(@"(?<target>.+?) evaded (?<skill>.+?)\.", RegexOptions.Compiled);
-        public static Regex regex_defeat = new Regex(@"(?<target>.+?) (was|were) (defeated|rendered near death|rendered Near Death|rendered Near death|killed) by ((?<actor>.+?)&apos;s )?(?<skill>.+?)\.", RegexOptions.Compiled);
-        public static Regex regex_debuff = new Regex(@"(?<target>.+?) (receives|resisted) (?<skill>.+?)\.", RegexOptions.Compiled);
-        public static Regex regex_heal = new Regex(@"(?<target>.+?)?( recovered|Recovered) ((?<HPAmount>\d+(,\d+)*) HP)?((?<FocusAmount>\d+) Focus)? (with|from) (?<skill>.+?)\.");
-        public static Regex regex_buff = new Regex(@"(?<skill>.+?) is now active\.", RegexOptions.Compiled);
-        public static Regex regex_resist = new Regex(@"((?<actor>.+?)&apos;s )?(?<skill>.+?)(hit)\s+(?<target>.+?)\s(but was resisted|but  was resisted)", RegexOptions.Compiled);
-        public static Regex regex_resist2 = new Regex(@"^Resisted\s+Daze", RegexOptions.Compiled);
+        public static Regex regex_hit = new Regex(@"^(.*?) (?:命中|命中了)?(.*?)[，,]造成(?:了)?([\d,]+)點(暴擊)?傷害");
+        public static Regex regex_dot = new Regex(@"^(.*?) 給(.*?)[，,]?造成了([\d,]+)點傷害");
+        public static Regex regex_critical = new Regex(@"^(.*?) (.*?)[，,]造成了([\d,]+)點暴擊傷害");
+        public static Regex regex_block = new Regex(@"^(.*?) 被(.*?)格擋，但造成了([\d,]+)點傷害");
+
+        public static Regex regex_reduce = new Regex(@"^(.*?) (.*?)(命中)[，,、。]?但(解除了.*?)效果");
+        public static Regex regex_defeat = new Regex(@"^(.*?)受到(.*?) (死亡了)");
+        public static Regex regex_hitButPerry = new Regex(@"^(.*?) (.*?)命中，但抵抗了(.*?) 效果");
+
+        public static Regex regex_incomingdamage = new Regex(@"^(.*?)的(.*?) 命中(?:了(.*?))?[，,]受到([\d,]+)點傷害");
+        public static Regex regex_incomingdamage2 = new Regex(@"^(.*?)的(.*?) 命中(?:了(.*?))?[，,]造成([\d,]+)點傷害");
 
         private static IACTWrapper _ACT = null;
 
@@ -59,7 +58,6 @@ namespace NeoActPlugin.Core
         public static void BeforeLogLineRead(bool isImport, Advanced_Combat_Tracker.LogLineEventArgs logInfo)
         {
             string logLine = logInfo.logLine;
-
             if (_ACT == null)
                 throw new ApplicationException("ACT Wrapper not initialized.");
 
@@ -76,115 +74,33 @@ namespace NeoActPlugin.Core
 
                 Match m;
 
-                m = regex_yourdamage.Match(logLine);
-                if (m.Success)
-                {
-                    string actor = "You";
-                    string target = m.Groups["target"].Success ? DecodeString(m.Groups["target"].Value) : "";
-                    string damage = (m.Groups["damage"].Value ?? "").Replace(",", "");
-                    string hpdrain = (m.Groups["HPDrain"].Value ?? "").Replace(",", "");
-
-                    if (_ACT.SetEncounter(timestamp, actor, target))
-                    {
-                        _ACT.AddCombatAction(
-                            (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
-                            m.Groups["critical"].Value == "critically hit",
-                            "",
-                            actor,
-                            DecodeString(m.Groups["skill"].Value),
-                            new Advanced_Combat_Tracker.Dnum(int.Parse(damage)),
-                            timestamp,
-                            _ACT.GlobalTimeSorter,
-                            target,
-                            "");
-
-                        if (m.Groups["HPDrain"].Success)
-                        {
-                            _ACT.AddCombatAction(
-                                (int)Advanced_Combat_Tracker.SwingTypeEnum.Healing,
-                                false,
-                                "Drain",
-                                actor,
-                                DecodeString(m.Groups["skill"].Value),
-                                new Advanced_Combat_Tracker.Dnum(int.Parse(hpdrain)),
-                                timestamp,
-                                _ACT.GlobalTimeSorter,
-                                actor,
-                                "");
-                        }
-
-                    }
-
-                    return;
-                }
-
-                m = regex_incomingdamage1.Match(logLine);
-                if (!m.Success)
+                m = regex_incomingdamage.Match(logLine);
+                if(!m.Success)
                     m = regex_incomingdamage2.Match(logLine);
-                if (!m.Success)
-                    m = regex_incomingdamage3.Match(logLine);
                 if (m.Success)
                 {
-                    string target = m.Groups["target"].Success ? DecodeString(m.Groups["target"].Value) : "";
-                    if (target == "Unknown" || target == "You")
-                        target = $"_{target}";
-
-                    string actor = m.Groups["actor"].Success ? DecodeString(m.Groups["actor"].Value) : "";
-                    if (actor == "Unknown" || actor == "You")
-                        actor = $"_{actor}";
-
-                    string skill = m.Groups["skill"].Success ? DecodeString(m.Groups["skill"].Value) : "";
-                    string damage = (m.Groups["damage"].Value ?? "").Replace(",", "");
-                    string hpdrain = (m.Groups["HPDrain"].Value ?? "").Replace(",", "");
-
-                    // if skillname is blank, the skillname and actor may be transposed
-                    if (string.IsNullOrWhiteSpace(skill))
-                    {
-                        if (!string.IsNullOrWhiteSpace(actor))
-                        {
-                            // "Received 1373 damage from Rising Blaze&apos;s ."
-                            skill = actor;
-                        }
-                    }
-
-                    // Fix for "Received 1373 damage from Balefire&apos;s Bleed
-                    string[] invalidSkills = {
-                        "Hellfire",
-                        "Venom",
-                        "Lasting Effects",
-                        "Bleed",
-                        "Poison",
-                        "Venom Swarm",
-                        "Flame Breath&apos;s Bleed",
-                        "Flame Breath&apos;s Lasting Effects",
-                        "Explosive Rage&apos;s Venom",
-                        "Explosive Rage&apos;s Poison",
-                    };
-
-                    if (!string.IsNullOrWhiteSpace(actor) && Array.Exists(invalidSkills, e => e == skill))
-                    {
-                        // using the actor rather than the skill allows users to
-                        // recognize their skills by checking Unknown's skill breakdown.
-                        // the damage lost here should be negligible in the grand scheme of things
-
-                        skill = actor;
-                        actor = "Unknown";
-                    }
-
+                    string target = m.Groups[3].Success ? DecodeString(m.Groups[3].Value) : "";
+                    if (target == "不明")
+                        target = "_Unknown";
+                    string actor = m.Groups[1].Success ? DecodeString(m.Groups[1].Value) : "";
+                    if (actor == "不明")
+                        actor = "_Unknown";
+                    string skill = m.Groups[2].Success ? DecodeString(m.Groups[2].Value) : "";
+                    string damage = (m.Groups[4].Value ?? "").Replace(",", "");
                     if (string.IsNullOrWhiteSpace(target))
-                        target = "You";
+                        target = "自己";
 
                     if (string.IsNullOrWhiteSpace(actor))
-                        actor = "Unknown";
+                        actor = "不明";
 
-                    // todo: in the future, if damage is missing, still parse the buff portion
-                    if (!m.Groups["damage"].Success)
+                    if (!m.Groups[4].Success)
                         return;
+                    PluginMain.WriteLog(LogLevel.Info, $"{logLine}=>{actor},{skill},{target},{damage}");
                     if (_ACT.SetEncounter(timestamp, actor, target))
                     {
                         _ACT.AddCombatAction(
                             (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
-                            m.Groups["critical"].Value == "Critical",
+                            false,
                             "",
                             actor,
                             skill,
@@ -193,146 +109,39 @@ namespace NeoActPlugin.Core
                             _ACT.GlobalTimeSorter,
                             target,
                             "");
-
-                        if (m.Groups["HPDrain"].Success)
-                        {
-                            _ACT.AddCombatAction(
-                                (int)Advanced_Combat_Tracker.SwingTypeEnum.Healing,
-                                false,
-                                "Drain",
-                                actor,
-                                skill,
-                                new Advanced_Combat_Tracker.Dnum(int.Parse(hpdrain)),
-                                timestamp,
-                                _ACT.GlobalTimeSorter,
-                                actor,
-                                "");
-                        }
                     }
 
                     return;
                 }
 
-                m = regex_heal.Match(logLine);
-                if (m.Success)
-                {
-                    string target = m.Groups["target"].Success ? DecodeString(m.Groups["target"].Value) : "";
-                    if (string.IsNullOrWhiteSpace(target))
-                        target = "You";
-                    string actor = "Unknown";
-
-                    // do not process if there is no HP amount.
-                    if (!m.Groups["HPAmount"].Success)
-                        return;
-
-                    string hpamount = (m.Groups["HPAmount"].Value ?? "").Replace(",", "");
-
-                    if (_ACT.SetEncounter(timestamp, actor, target))
-                    {
-                        _ACT.AddCombatAction(
-                            (int)Advanced_Combat_Tracker.SwingTypeEnum.Healing,
-                            false,
-                            "",
-                            actor,
-                            DecodeString(m.Groups["skill"].Value),
-                            new Advanced_Combat_Tracker.Dnum(int.Parse(hpamount)),
-                            timestamp,
-                            _ACT.GlobalTimeSorter,
-                            target,
-                            "");
-
-                    }
-                    return;
-                }
-
-
-                m = regex_debuff2.Match(logLine);
-                if (m.Success)
-                {
-                    // todo: add debuff support
-                    return;
-                }
-
-                m = regex_debuff.Match(logLine);
-                if (m.Success)
-                {
-                    // todo: add debuff support
-                    return;
-                }
-
-                m = regex_buff.Match(logLine);
-                if (m.Success)
-                {
-                    // todo: add buff support
-                    return;
-                }
-
-                m = regex_evade.Match(logLine);
-                if (m.Success)
-                {
-                    string target = m.Groups["target"].Success ? DecodeString(m.Groups["target"].Value) : "";
-                    string skill = m.Groups["skill"].Success ? DecodeString(m.Groups["skill"].Value) : "";
-                    string actor = "You";
-                    
-                    if (_ACT.SetEncounter(timestamp, actor, target))
-                    {
-                        _ACT.AddCombatAction(
-                            (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
-                            false,
-                            "Miss",
-                            actor,
-                            skill,
-                            Advanced_Combat_Tracker.Dnum.Miss,
-                            timestamp,
-                            _ACT.GlobalTimeSorter,
-                            target,
-                            "");
-                    }
-                    
-                    return;
-                }
-
-                m = regex_resist.Match(logLine);
+                m = regex_hit.Match(logLine);
                 if (!m.Success)
-                    m = regex_resist2.Match(logLine);
+                    m = regex_dot.Match(logLine);
+                if (!m.Success)
+                    m = regex_critical.Match(logLine);
+                if (!m.Success)
+                    m = regex_block.Match(logLine);
                 if (m.Success)
                 {
-                    // todo: add resist support
+                    SimpleHit(timestamp, m);
+                    return;
+                }
+
+                m = regex_reduce.Match(logLine);
+                if (m.Success)
+                {
+                    return;
+                }
+                
+                m = regex_hitButPerry.Match(logLine);
+                if (m.Success)
+                {
                     return;
                 }
 
                 m = regex_defeat.Match(logLine);
                 if (m.Success)
                 {
-                    // leaving this out for now
-                    // causing too many wrong actors to appear
-
-                    /*
-                    string target = m.Groups["target"].Success ? DecodeString(m.Groups["target"].Value) : "";
-                    if (target == "Unknown")
-                        target = "_Unknown";
-                    string actor = m.Groups["actor"].Success ? DecodeString(m.Groups["actor"].Value) : "";
-                    if (target == "Unknown")
-                        actor = "_Unknown";
-                    if (string.IsNullOrWhiteSpace(actor))
-                        actor = "Unknown";
-
-                    if (_ACT.SetEncounter(timestamp, actor, target))
-                    {
-                        _ACT.AddCombatAction(
-                            (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
-                            false,
-                            "",
-                            actor,
-                            DecodeString(m.Groups["skill"].Value),
-                            Advanced_Combat_Tracker.Dnum.Death,
-                            timestamp,
-                            _ACT.GlobalTimeSorter,
-                            target,
-                            "");
-                    }
-                    */
-
                     return;
                 }
             }
@@ -348,6 +157,30 @@ namespace NeoActPlugin.Core
             // For debugging
             if (!string.IsNullOrWhiteSpace(logLine))
                 PluginMain.WriteLog(LogLevel.Warning, "Unhandled Line: " + logInfo.logLine);
+        }
+
+        private static void SimpleHit(DateTime timestamp, Match m)
+        {
+            string actor = "自己";
+            string skill = DecodeString(m.Groups[1].Value ?? "");
+            string target = m.Groups[2].Success ? DecodeString(m.Groups[2].Value) : "";
+            string damage = (m.Groups[3].Value ?? "").Replace(",", "");
+            bool isCrit = m.Groups.Count > 4 && m.Groups[4].Success;
+            if (_ACT.SetEncounter(timestamp, actor, target))
+            {
+                _ACT.AddCombatAction(
+                    (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
+                    isCrit,
+                    "",
+                    actor,
+                    skill,
+                    new Advanced_Combat_Tracker.Dnum(int.Parse(damage)),
+                    timestamp,
+                    _ACT.GlobalTimeSorter,
+                    target,
+                    "");
+            }
+            return;
         }
 
         private static string DecodeString(string data)
