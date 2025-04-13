@@ -88,6 +88,7 @@
     <Compile Include="IEventReceiver.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LogParser.cs" />
+    <Compile Include="LogParserTest.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="PluginMain.cs" />

@@ -15,7 +15,7 @@ namespace NeoActPlugin.Core
         TabPage tab;
         Label label;
         ControlPanel panel;
-
+        LogParser LogParser;
         internal string PluginDirectory { get; private set; }
 
         public PluginMain(string pluginDirectory, Logger logger, TinyIoCContainer container)
@@ -23,7 +23,7 @@ namespace NeoActPlugin.Core
             _container = container;
             PluginDirectory = pluginDirectory;
             _logger = logger;
-
+            LogParser = new LogParser();
             //configSaveTimer = new Timer();
             //configSaveTimer.Interval = 300000;
             //configSaveTimer.Tick += (o, e) => SaveConfig();
