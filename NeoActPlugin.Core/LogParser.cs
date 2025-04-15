@@ -9,7 +9,7 @@ namespace NeoActPlugin.Core
     {
         public static Regex regex_hit = new Regex(@"^(.*?) 命中(?:了)?(.*?)[，,]造成(?:了)?([\d,]+)點(暴擊)?傷害(?:[，,].*)?[。.]?$");
         public static Regex regex_critical = new Regex(@"^(.*?) (.*?)[，,]造成了([\d,]+)點(暴擊)?傷害[。.]?$");
-        public static Regex regex_block = new Regex(@"^(.*?) 被(.*?)格擋，但造成了([\d,]+)點傷害[。.]?$");
+        public static Regex regex_block = new Regex(@"^(.*?) (?:被)?(.*?)格擋，但造成了([\d,]+)點傷害[。.]?$");
         public static Regex regex_block2 = new Regex(@"^(.*?) (.*?)的反擊，仍造成了([\d,]+)點傷害[。.]?$");
         public static Regex regex_attakHeal = new Regex(@"^(.*?) 命中(?:了)?(.*?)，造成(?:了)?([\d,]+)點(暴擊)?傷害及吸收了([\d,]+)點生命力。");
 
@@ -18,7 +18,7 @@ namespace NeoActPlugin.Core
         public static Regex regex_defeat = new Regex(@"^(.*?)受到(.*?) (死亡了)[。.]?$");
         public static Regex regex_defeat2 = new Regex(@"^由於(.*?)的(.*?)，(.*?) 死亡了[。.]?$");
         public static Regex regex_playerDefeat = new Regex(@"^由於(.*?)的(.*?)，(.*?) 陷入瀕死狀態[。.]?$");
-        public static Regex regex_playerDefeat2 = new Regex(@"^受到(.*?)的(.*?)影響，(.*?) 陷入瀕死狀態[。.]?$");
+        public static Regex regex_playerDefeat2 = new Regex(@"^受到(.*?)的(.*?)影響，(.*?)\s*陷入瀕死狀態[。.]?$");
 
         public static Regex regex_hitButPerry = new Regex(@"^(.*?) (.*?)命中，但抵抗了(.*?) 效果");
         public static Regex regex_heal = new Regex(@"^由於(.*?)效果，恢復了([\d,]+)點生命力");
