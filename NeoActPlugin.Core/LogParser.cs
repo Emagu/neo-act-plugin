@@ -15,13 +15,15 @@ namespace NeoActPlugin.Core
 
         public static Regex regex_reduce = new Regex(@"^(.*?) (.*?)命中(?:了)?[，,、。]?但(解除了.*?)效果");
 
-        public static Regex regex_defeat = new Regex(@"^(.*?)受到(.*?) (死亡了)[。.]?$");
-        public static Regex regex_defeat2 = new Regex(@"^由於(.*?)的(.*?)，(.*?) 死亡了[。.]?$");
-        public static Regex regex_playerDefeat = new Regex(@"^由於(.*?)的(.*?)，(.*?) 陷入瀕死狀態[。.]?$");
-        public static Regex regex_playerDefeat2 = new Regex(@"^受到(.*?)的(.*?)影響，(.*?)\s*陷入瀕死狀態[。.]?$");
+        public static Regex regex_defeat = new Regex(@"^\s*(.*?)受到(.*?) (死亡了)[。.]?$");
+        public static Regex regex_defeat2 = new Regex(@"^\s*由於(.*?)的(.*?)，(.*?) 死亡了[。.]?$");
+        public static Regex regex_playerDefeat = new Regex(@"^\s*由於(.*?)的(.*?)，(.*?) 陷入瀕死狀態[。.]?$");
+        public static Regex regex_playerDefeat2 = new Regex(@"^\s*受到(.*?)的(.*?)影響，(.*?)\s*陷入瀕死狀態[。.]?$");
 
-        public static Regex regex_hitButPerry = new Regex(@"^(.*?) (.*?)命中，但抵抗了(.*?) 效果");
-        public static Regex regex_heal = new Regex(@"^由於(.*?)效果，恢復了([\d,]+)點生命力");
+        public static Regex regex_hitButPerry = new Regex(@"^(.*?) (.*?)命中，但抵抗了(.*?) 效果[。.]?$");
+        public static Regex regex_heal = new Regex(@"^由於(.*?)效果，恢復了([\d,]+)點(.*?)[。.]?$");
+        public static Regex regex_heal2 = new Regex(@"^(.*?)受到(.*?) 恢復了([\d,]+)點(.*?)[。.]?$");
+        //public static Regex regex_heal3 = new Regex(@"^(.*?)受到(.*?) 恢復了([\d,]+)點生命力[。.]?$");
 
         public static Regex regex_debuff = new Regex(@"^(.*?)的(.*?) 命中，受到(.*?) 效果[。.]?");
         public static Regex regex_debuff2 = new Regex(@"^(.*?) (.*?) 效果[。.]?$");
@@ -33,9 +35,10 @@ namespace NeoActPlugin.Core
 
         public static Regex regex_dot4 = new Regex(@"^(.*?)的(.*?)效果給(.*?)造成了([\d,]+)點傷害");
 
-        public static Regex regex_incomingdamage = new Regex(@"^(.*?)的\s*([^的\s]*) 命中(?:了)?(.*?)[，,]受到([\d,]+)點傷害(?:.*)?$");
-        public static Regex regex_incomingdamage2 = new Regex(@"^(.*)的\s*([^的\s]*) 命中(?:了)?(.*?)[，,]造成(?:了)?([\d,]+)點傷害(?:.*)?$");
-        public static Regex regex_incomingdamage_block = new Regex(@"^(.*)的\s*([^的\s]*) (.*?)[，,]但仍受到([\d,]+)點傷害(?:.*)?$");
+        public static Regex regex_incomingdamage = new Regex(@"^\s*(.*?)的\s*([^的\s]*) 命中(?:了)?(.*?)[，,]受到([\d,]+)點傷害(?:.*)?$");
+        public static Regex regex_incomingdamage2 = new Regex(@"^\s*(.*)的\s*([^的\s]*) 命中(?:了)?(.*?)[，,]造成(?:了)?([\d,]+)點傷害(?:.*)?$");
+        public static Regex regex_incomingdamage_block = new Regex(@"^\s*(.*)的\s*([^的\s]*) (.*?)[，,]但仍受到([\d,]+)點傷害(?:.*)?$");
+        public static Regex regex_incomingdamageCtit = new Regex(@"^\s*(.*)的\s*([^的\s]*) 命中(?:了)?(.*?)[，,]造成(?:了)?([\d,]+)點暴擊傷害(?:.*)?$");
 
         public DateTime ParseLogDateTime(string message)
         {
@@ -117,6 +120,32 @@ namespace NeoActPlugin.Core
                     return;
                 }
 
+                m = regex_incomingdamageCtit.Match(logLine);
+                if (m.Success)
+                {
+                    string target = m.Groups[3].Success ? DecodeString(m.Groups[3].Value) : "";
+                    if (target == "不明")
+                        target = "_Unknown";
+                    string actor = m.Groups[1].Success ? DecodeString(m.Groups[1].Value) : "";
+                    if (actor == "不明")
+                        actor = "_Unknown";
+                    string skill = m.Groups[2].Success ? DecodeString(m.Groups[2].Value) : "";
+                    string damage = (m.Groups[4].Value ?? "").Replace(",", "");
+                    if (string.IsNullOrWhiteSpace(target))
+                        target = "自己";
+
+                    if (string.IsNullOrWhiteSpace(actor))
+                        actor = "不明";
+
+                    if (!m.Groups[4].Success)
+                        return;
+
+                    Log(true, $"{logLine}=>{actor},{skill},{target},{damage}");
+                    AddAction(timestamp, actor, target, skill, damage, true);
+
+                    return;
+                }
+
                 m = regex_dot4.Match(logLine);
                 if (m.Success)
                 {
@@ -184,7 +213,12 @@ namespace NeoActPlugin.Core
                 {
                     return;
                 }
-
+                m = regex_heal2.Match(logLine);
+                if (m.Success)
+                {
+                    return;
+                }
+                
                 #region 因為異常狀態不知道誰給的，公平起見都忽略
                 m = regex_debuff.Match(logLine);
                 if (m.Success)
