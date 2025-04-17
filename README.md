@@ -4,3 +4,22 @@
 
 >[!警告]
 >這個插件讀取遊戲記憶體資料，已違反官方遊戲管理規範，自行斟酌風險使用
+
+### 安裝方式
+1. 下載[ACT](https://advancedcombattracker.com/download.php)，並完成安裝
+2. 下載[最新版插件](https://github.com/Emagu/neo-act-plugin/releases/tag/NeoTw)
+3. 解壓縮並覆蓋掉原本下載的插件(如果下載過的話)，記得先關閉ACT如果有在運行的話
+以下為初次安裝所需
+4. 使用工作管理員開啟ACT
+5. 於上方列表找到Plugins,並點開
+6. 於Plugin Listing中找到Browse,並點開
+7. 找到剛剛下載並解壓縮的插件，選擇NeoActPlugin.dll
+8. 回到ACT的Plugins中應該就會顯示了，確認enabled有勾選
+
+### 使用方式
+1. 每次開啟ACT都需要到Plugins>NeoActPlugin.dll頁面中，有一個下拉選單預設為Global，將它改為Taiwan才能正常抓到台服程式
+2. 戰鬥資訊只能在Main中查看，因為我懶得改原作者的網頁呈現
+
+## License
+
+MIT License, see [LICENSE](LICENSE) for more information.
