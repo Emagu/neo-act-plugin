@@ -76,7 +76,7 @@ namespace NeoActPlugin.Core
             this.regionPicker.Name = "regionPicker";
             this.regionPicker.Items.AddRange(new string[] { "Global", "Japan (EN Patch)", "Taiwan (EN Patch)" });
             this.regionPicker.SelectedIndexChanged += new System.EventHandler(this.RegionPicker_SelectedIndexChanged);
-            this.regionPicker.SelectedIndex = 0;
+            this.regionPicker.SelectedIndex = 2;
             // 
             // ControlPanel
             // 
