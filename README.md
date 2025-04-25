@@ -15,11 +15,11 @@
 6. 於Plugin Listing中找到Browse,並點開
 7. 找到剛剛下載並解壓縮的插件，選擇NeoActPlugin.dll
 8. 回到ACT的Plugins中應該就會顯示了，確認enabled有勾選
-
+9. [安裝影片Youtube](https://www.youtube.com/watch?v=deu13IIWQys)
 ### 使用方式
-1. 每次開啟ACT都需要到Plugins>NeoActPlugin.dll頁面中，有一個下拉選單預設為Global，將它改為Taiwan才能正常抓到台服程式
-2. 戰鬥資訊只能在Main中查看，因為我懶得改原作者的網頁呈現
-3. 戰鬥解析僅在隱藏隊友(Ctrl+f兩次)情況下測試，不確定顯示隊友時統計會不會出錯。隱藏隊友統計不會計算隊友暴率，但是傷害87%準，測出來的傷害會比實際低一點點
+1. ~~每次開啟ACT都需要到Plugins>NeoActPlugin.dll頁面中，有一個下拉選單預設為Global，將它改為Taiwan才能正常抓到台服程式~~
+2. 戰鬥資訊只能在Main中查看，因為我懶得改原作者的網頁呈現(其實是看不懂)
+3. 戰鬥解析僅在隱藏隊友(Ctrl+F兩次)情況下測試，不確定顯示隊友時統計會不會出錯。隱藏隊友統計不會計算隊友暴率，但是傷害87%準，測出來的傷害會比實際低一點點
 
 ## License
 
