@@ -1,6 +1,3 @@
-using System;
-using NeoActPlugin.Core;
-
 namespace NeoActPlugin.Test
 {
     class Program

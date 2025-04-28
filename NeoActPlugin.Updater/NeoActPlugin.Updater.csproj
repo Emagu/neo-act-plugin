@@ -116,6 +116,7 @@
     <EmbeddedResource Include="UpdateQuestionForm.resx">
       <DependentUpon>UpdateQuestionForm.cs</DependentUpon>
       <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>UpdateQuestionForm2.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

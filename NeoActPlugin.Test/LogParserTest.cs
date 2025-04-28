@@ -1,11 +1,7 @@
-using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Collections.Generic;
-using System.Linq;
+using NeoActPlugin.Core;
 using Newtonsoft.Json;
 
-namespace NeoActPlugin.Core
+namespace NeoActPlugin.Test
 {
     public class LogParserTest : BaseParser
     {
@@ -13,19 +9,23 @@ namespace NeoActPlugin.Core
 
         protected override void AddAction(DateTime timestamp, string actor, string target, string skill, string damage, bool isCrit)
         {
-            if (skill == "嵐夏的")
+            if (string.IsNullOrEmpty(damage))
             {
-                throw new Exception("errr");
+                Console.WriteLine(skill + "攻擊閃避");
             }
-            if (!Data.ContainsKey(actor))
+            else
             {
-                Data.Add(actor, new Dictionary<string, int>());
+                if (!Data.ContainsKey(actor))
+                {
+                    Data.Add(actor, new Dictionary<string, int>());
+                }
+                if (!Data[actor].ContainsKey(skill))
+                {
+                    Data[actor].Add(skill, 0);
+                }
+                Data[actor][skill] += int.Parse(damage);
             }
-            if (!Data[actor].ContainsKey(skill))
-            {
-                Data[actor].Add(skill, 0);
-            }
-            Data[actor][skill] += int.Parse(damage);
+            
         }
 
         public void TestLogFile(string filePath)

@@ -1,9 +1,12 @@
-﻿using Advanced_Combat_Tracker;
-using NeoActPlugin.Common;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
+using Advanced_Combat_Tracker;
+using NeoActPlugin.Common;
 
 namespace NeoActPlugin.Core
 {
@@ -11,11 +14,21 @@ namespace NeoActPlugin.Core
     {
         private TinyIoCContainer _container;
         private static ILogger _logger;
-
+        readonly List<string> BossNames = new List<string>
+        {
+            "青龍鬼",
+            "赤龍鬼"
+        };
         TabPage tab;
         Label label;
         ControlPanel panel;
         LogParser LogParser;
+
+        private System.Windows.Forms.Timer updateTimer;
+        private Form dpsForm;
+        private Panel dpsPanel;
+        private Dictionary<string, DpsBarControl> playerControls = new Dictionary<string, DpsBarControl>();
+
         internal string PluginDirectory { get; private set; }
 
         public PluginMain(string pluginDirectory, Logger logger, TinyIoCContainer container)
@@ -24,14 +37,11 @@ namespace NeoActPlugin.Core
             PluginDirectory = pluginDirectory;
             _logger = logger;
             LogParser = new LogParser();
-            //configSaveTimer = new Timer();
-            //configSaveTimer.Interval = 300000;
-            //configSaveTimer.Tick += (o, e) => SaveConfig();
 
             _container.Register(this);
         }
 
-        public void InitPlugin(System.Windows.Forms.TabPage pluginScreenSpace, System.Windows.Forms.Label pluginStatusText)
+        public void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
         {
             try
             {
@@ -65,8 +75,8 @@ namespace NeoActPlugin.Core
 
                 Updater.Updater.PerformUpdateIfNecessary(PluginDirectory, _container);
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.UpdateCheckClicked += new Advanced_Combat_Tracker.FormActMain.NullDelegate(UpdateCheckClicked);
-                if (Advanced_Combat_Tracker.ActGlobals.oFormActMain.GetAutomaticUpdatesAllowed())
+                ActGlobals.oFormActMain.UpdateCheckClicked += new FormActMain.NullDelegate(UpdateCheckClicked);
+                if (ActGlobals.oFormActMain.GetAutomaticUpdatesAllowed())
                 {
                     Thread updateThread = new Thread(new ThreadStart(UpdateCheckClicked));
                     updateThread.IsBackground = true;
@@ -77,18 +87,50 @@ namespace NeoActPlugin.Core
 
                 LogParser.Initialize(new ACTWrapper());
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.LogPathHasCharName = false;
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.LogFileFilter = "*.log";
+                ActGlobals.oFormActMain.LogPathHasCharName = false;
+                ActGlobals.oFormActMain.LogFileFilter = "*.log";
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.TimeStampLen = DateTime.Now.ToString("HH:mm:ss.fff").Length + 1;
+                ActGlobals.oFormActMain.TimeStampLen = DateTime.Now.ToString("HH:mm:ss.fff").Length + 1;
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.GetDateTimeFromLog = new FormActMain.DateTimeLogParser(LogParser.ParseLogDateTime);
+                ActGlobals.oFormActMain.GetDateTimeFromLog = new FormActMain.DateTimeLogParser(LogParser.ParseLogDateTime);
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.BeforeLogLineRead += new LogLineEventDelegate(LogParser.BeforeLogLineRead);
+                ActGlobals.oFormActMain.BeforeLogLineRead += new LogLineEventDelegate(LogParser.BeforeLogLineRead);
 
-                Advanced_Combat_Tracker.ActGlobals.oFormActMain.ChangeZone("Blade & Soul");
+                ActGlobals.oFormActMain.OnCombatEnd += OnCombatEnd;
+
+                ActGlobals.oFormActMain.OnCombatStart += OnCombatStart;
+
+                ActGlobals.oFormActMain.ChangeZone("Blade & Soul");
 
                 LogWriter.Initialize();
+
+                dpsForm = new DpsOverlayForm
+                {
+                    Text = "隨便做的UI",
+                    Width = 300,
+                    Height = 350,
+                    FormBorderStyle = FormBorderStyle.FixedSingle,
+                    TopMost = true,
+                    MaximizeBox = false,      // 禁用最大化按鈕
+                    BackColor = Color.Lime,           // 透明用顏色
+                    TransparencyKey = Color.Lime
+                };
+
+                dpsPanel = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    AutoScroll = true,
+                    BackColor = Color.Transparent
+                };
+                dpsForm.Controls.Add(dpsPanel);
+                dpsForm.Show();
+
+                updateTimer = new System.Windows.Forms.Timer
+                {
+                    Interval = 1000
+                };
+                updateTimer.Tick += UpdateTimer_Tick;
+                updateTimer.Start();
 
                 this.label.Text = "Initialized.";
             }
@@ -97,6 +139,94 @@ namespace NeoActPlugin.Core
                 ActGlobals.oFormActMain.WriteInfoLog(ex.Message);
                 WriteLog(LogLevel.Error, "Exception during InitPlugin: " + ex.ToString().Replace(Environment.NewLine, " "));
                 this.label.Text = "InitPlugin Error.";
+            }
+        }
+
+        private void UpdateTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                var encounter = ActGlobals.oFormActMain.ActiveZone.ActiveEncounter;
+                if (encounter == null) return;
+
+                var combatants = encounter.Items.Values
+                    .Where(c => c.Damage > 0)
+                    .OrderByDescending(c => c.Damage)
+                    .Take(6)
+                    .ToList();
+
+                double totalDamage = combatants.Sum(c => c.Damage);
+
+                // 移除不在前6名的player
+                var keysToRemove = playerControls.Keys.Except(combatants.Select(c => c.Name)).ToList();
+                foreach (var key in keysToRemove)
+                {
+                    if (playerControls.TryGetValue(key, out var control))
+                    {
+                        dpsPanel.Controls.Remove(control);
+                        control.Dispose();
+                    }
+                    playerControls.Remove(key);
+                }
+
+                int y = 10;
+                int panelWidth = dpsPanel.ClientSize.Width - 20;
+
+                foreach (var c in combatants)
+                {
+                    if (!playerControls.TryGetValue(c.Name, out var dpsBar))
+                    {
+                        dpsBar = new DpsBarControl
+                        {
+                            Width = panelWidth,
+                            Height = 40, // 放大一點好看
+                            BackColor = Color.Transparent
+                        };
+                        playerControls[c.Name] = dpsBar;
+                        dpsPanel.Controls.Add(dpsBar);
+                    }
+
+                    double percent = (totalDamage > 0) ? (c.Damage / totalDamage) : 0;
+
+                    dpsBar.SetValues(c.Name, c.EncDPS, percent);
+                    dpsBar.Width = panelWidth;
+                    dpsBar.Location = new Point(5, y);
+
+                    y += dpsBar.Height + 5;
+                }
+
+                // 重新按照Damage高低排列Control順序
+                dpsPanel.Controls.SetChildIndex(playerControls[combatants[0].Name], 0);
+                if (combatants.Count > 1) dpsPanel.Controls.SetChildIndex(playerControls[combatants[1].Name], 1);
+                if (combatants.Count > 2) dpsPanel.Controls.SetChildIndex(playerControls[combatants[2].Name], 2);
+                if (combatants.Count > 3) dpsPanel.Controls.SetChildIndex(playerControls[combatants[3].Name], 3);
+                if (combatants.Count > 4) dpsPanel.Controls.SetChildIndex(playerControls[combatants[4].Name], 4);
+                if (combatants.Count > 5) dpsPanel.Controls.SetChildIndex(playerControls[combatants[5].Name], 5);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DpsBarPlugin] Error: {ex.Message}");
+            }
+        }
+
+        private void OnCombatStart(bool isImport, CombatToggleEventArgs encounterInfo)
+        {
+            playerControls.Clear();
+            dpsPanel.Controls.Clear();
+        }
+        private void OnCombatEnd(bool isImport, CombatToggleEventArgs encounterInfo)
+        {
+            if (isImport) return; // 匯入Log時不處理
+
+            var encounter = encounterInfo.encounter;
+
+            foreach (var data in encounter.Items.Values)
+            {
+                if (BossNames.Contains(data.Name))
+                {
+                    encounter.Title = $"[{data.Name}]({DateTime.Now:MMdd-HHmm})";
+                    break; // 找到一個就改，不繼續找了
+                }
             }
         }
 
@@ -113,8 +243,22 @@ namespace NeoActPlugin.Core
         {
             LogWriter.Uninitialize();
 
-            Advanced_Combat_Tracker.ActGlobals.oFormActMain.UpdateCheckClicked -= this.UpdateCheckClicked;
-            Advanced_Combat_Tracker.ActGlobals.oFormActMain.BeforeLogLineRead -= LogParser.BeforeLogLineRead;
+            ActGlobals.oFormActMain.UpdateCheckClicked -= this.UpdateCheckClicked;
+            ActGlobals.oFormActMain.BeforeLogLineRead -= LogParser.BeforeLogLineRead;
+            ActGlobals.oFormActMain.OnCombatEnd -= OnCombatEnd;
+            ActGlobals.oFormActMain.OnCombatStart -= OnCombatStart;
+
+            if (updateTimer != null)
+            {
+                updateTimer.Stop();
+                updateTimer.Dispose();
+            }
+
+            if (dpsForm != null)
+            {
+                dpsForm.Close();
+                dpsForm.Dispose();
+            }
 
             if (this.label != null)
             {

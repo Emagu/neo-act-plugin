@@ -12,6 +12,8 @@ namespace NeoActPlugin.Core
         public static Regex regex_block = new Regex(@"^(.*?) (?:被)?(.*?)格擋，但造成了([\d,]+)點傷害[。.]?$");
         public static Regex regex_block2 = new Regex(@"^(.*?) (.*?)的反擊，仍造成了([\d,]+)點傷害[。.]?$");
         public static Regex regex_attakHeal = new Regex(@"^(.*?) 命中(?:了)?(.*?)，造成(?:了)?([\d,]+)點(暴擊)?傷害及吸收了([\d,]+)點生命力。");
+        
+        public static Regex regex_miss = new Regex(@"^(.*?) (.*?) [。.]?$");
 
         public static Regex regex_reduce = new Regex(@"^(.*?) (.*?)命中(?:了)?[，,、。]?但(解除了.*?)效果");
 
@@ -80,8 +82,8 @@ namespace NeoActPlugin.Core
             string actor, 
             string target,
             string skill,
-            string damage,
-            bool isCrit)
+            string damage = "",
+            bool isCrit = false)
         { }
 
         protected void Parse(string logLine, DateTime timestamp)
@@ -208,6 +210,20 @@ namespace NeoActPlugin.Core
                 }
                 #endregion
 
+
+                m = regex_miss.Match(logLine);
+                if (m.Success)
+                {
+                    string actor = "自己";
+                    string skill = DecodeString(m.Groups[1].Value ?? "");
+                    string target = m.Groups[2].Success ? DecodeString(m.Groups[2].Value) : "";
+                    
+                    Log(true, $"{logLine}=>{actor},{skill},{target},閃避");
+                    AddAction(timestamp, actor, target, skill);
+
+                    return;
+                }
+
                 m = regex_heal.Match(logLine);
                 if (m.Success)
                 {
@@ -325,21 +341,38 @@ namespace NeoActPlugin.Core
                 PluginMain.WriteLog(LogLevel.Info, msg);
             }
         }
-        protected override void AddAction(DateTime timestamp, string actor, string target, string skill, string damage, bool isCirt)
+        protected override void AddAction(DateTime timestamp, string actor, string target, string skill, string damage = "", bool isCirt = false)
         {
             if (_ACT.SetEncounter(timestamp, actor, target))
             {
-                _ACT.AddCombatAction(
-                    (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
-                    isCirt,
-                    "",
-                    actor,
-                    skill,
-                    new Advanced_Combat_Tracker.Dnum(int.Parse(damage)),
-                    timestamp,
-                    _ACT.GlobalTimeSorter,
-                    target,
-                    "");
+                if (string.IsNullOrEmpty(damage))
+                {
+                    _ACT.AddCombatAction(
+                        (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
+                        false,
+                        "",
+                        actor,
+                        skill,
+                        Advanced_Combat_Tracker.Dnum.Miss,
+                        timestamp,
+                        _ACT.GlobalTimeSorter,
+                        target,
+                        "");
+                }
+                else
+                {
+                    _ACT.AddCombatAction(
+                        (int)Advanced_Combat_Tracker.SwingTypeEnum.NonMelee,
+                        isCirt,
+                        "",
+                        actor,
+                        skill,
+                        new Advanced_Combat_Tracker.Dnum(int.Parse(damage)),
+                        timestamp,
+                        _ACT.GlobalTimeSorter,
+                        target,
+                        "");
+                }   
             }
         }
 

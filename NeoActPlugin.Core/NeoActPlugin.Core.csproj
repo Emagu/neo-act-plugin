@@ -88,13 +88,15 @@
     <Compile Include="IEventReceiver.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LogParser.cs" />
-    <Compile Include="LogParserTest.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="PluginMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reader.cs" />
     <Compile Include="Resources.Designer.cs" />
+    <Compile Include="SimpleUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NeoActPlugin.Common\NeoActPlugin.Common.csproj">
