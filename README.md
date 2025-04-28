@@ -7,7 +7,7 @@
 
 ### 安裝方式
 1. 下載[ACT](https://advancedcombattracker.com/download.php)，並完成安裝
-2. 下載[最新版插件](https://github.com/Emagu/neo-act-plugin/releases/tag/NeoTw)
+2. 下載[最新版插件](https://github.com/Emagu/neo-act-plugin/releases/latest)
 3. 解壓縮並覆蓋掉原本下載的插件(如果下載過的話)，記得先關閉ACT如果有在運行的話
 以下為初次安裝所需
 4. 使用工作管理員開啟ACT
