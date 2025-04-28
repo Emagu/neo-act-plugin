@@ -72,7 +72,7 @@ namespace NeoActPlugin.Core
                 this.tab.Name = "Neo ACT Plugin";
 
                 _logger.Log(LogLevel.Info, "Initialized.");
-
+                /*
                 Updater.Updater.PerformUpdateIfNecessary(PluginDirectory, _container);
 
                 ActGlobals.oFormActMain.UpdateCheckClicked += new FormActMain.NullDelegate(UpdateCheckClicked);
@@ -84,7 +84,7 @@ namespace NeoActPlugin.Core
                 }
 
                 UpdateACTTables();
-
+                */
                 LogParser.Initialize(new ACTWrapper());
 
                 ActGlobals.oFormActMain.LogPathHasCharName = false;
