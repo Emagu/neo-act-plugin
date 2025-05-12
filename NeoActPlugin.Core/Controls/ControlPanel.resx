@@ -244,7 +244,7 @@
     <value>4</value>
   </data>
   <data name="buttonClearLog.Text" xml:space="preserve">
-    <value>Clear Log</value>
+    <value>清除LOG</value>
   </data>
   <data name="&gt;&gt;buttonClearLog.Name" xml:space="preserve">
     <value>buttonClearLog</value>
@@ -271,13 +271,13 @@
     <value>92, 3</value>
   </data>
   <data name="checkBoxFollowLog.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 31</value>
+    <value>101, 31</value>
   </data>
   <data name="checkBoxFollowLog.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
   <data name="checkBoxFollowLog.Text" xml:space="preserve">
-    <value>Autoscroll the log</value>
+    <value>自動捲動LOG</value>
   </data>
   <data name="&gt;&gt;checkBoxFollowLog.Name" xml:space="preserve">
     <value>checkBoxFollowLog</value>
@@ -291,38 +291,71 @@
   <data name="&gt;&gt;checkBoxFollowLog.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="regionPicker.Items" xml:space="preserve">
-    <value>Global</value>
+  <data name="checkBoxShowOverlay.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
-  <data name="regionPicker.Items1" xml:space="preserve">
-    <value>Japan (EN Patch)</value>
+  <data name="checkBoxShowOverlay.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
   </data>
-  <data name="regionPicker.Items2" xml:space="preserve">
-    <value>Taiwan (EN Patch)</value>
+  <data name="checkBoxShowOverlay.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
   </data>
-  <data name="regionPicker.Location" type="System.Drawing.Point, System.Drawing">
-    <value>215, 6</value>
+  <data name="checkBoxShowOverlay.Location" type="System.Drawing.Point, System.Drawing">
+    <value>199, 3</value>
   </data>
-  <data name="regionPicker.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 6, 3, 3</value>
+  <data name="checkBoxShowOverlay.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 31</value>
   </data>
-  <data name="regionPicker.Size" type="System.Drawing.Size, System.Drawing">
-    <value>125, 23</value>
+  <data name="checkBoxShowOverlay.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
   </data>
-  <data name="regionPicker.TabIndex" type="System.Int32, mscorlib">
-    <value>5</value>
+  <data name="checkBoxShowOverlay.Text" xml:space="preserve">
+    <value>鎖定浮動窗</value>
   </data>
-  <data name="&gt;&gt;regionPicker.Name" xml:space="preserve">
-    <value>regionPicker</value>
+  <data name="&gt;&gt;checkBoxShowOverlay.Name" xml:space="preserve">
+    <value>checkBoxShowOverlay</value>
   </data>
-  <data name="&gt;&gt;regionPicker.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;checkBoxShowOverlay.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;regionPicker.Parent" xml:space="preserve">
+  <data name="&gt;&gt;checkBoxShowOverlay.Parent" xml:space="preserve">
     <value>flowLayoutPanel</value>
   </data>
-  <data name="&gt;&gt;regionPicker.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;checkBoxShowOverlay.ZOrder" xml:space="preserve">
     <value>2</value>
+  </data>
+  <data name="button1.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <data name="button1.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="button1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>296, 4</value>
+  </data>
+  <data name="button1.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 4, 3, 4</value>
+  </data>
+  <data name="button1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 29</value>
+  </data>
+  <data name="button1.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="button1.Text" xml:space="preserve">
+    <value>管理目標</value>
+  </data>
+  <data name="&gt;&gt;button1.Name" xml:space="preserve">
+    <value>button1</value>
+  </data>
+  <data name="&gt;&gt;button1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;button1.Parent" xml:space="preserve">
+    <value>flowLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;button1.ZOrder" xml:space="preserve">
+    <value>3</value>
   </data>
   <data name="flowLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Top</value>

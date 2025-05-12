@@ -47,8 +47,6 @@ namespace NeoActPlugin.Core
         private int? _pid;
         private IntPtr _baseAddress;
         private IntPtr _currentAddress;
-        public static string _region = "Global";
-        private readonly long[] _offsets = { 0x74893C8, 0xA0, 0x670, 0x8 };
         private readonly long[] _offsetsTWJP = { 0x07489358, 0xA0, 0x670, 0x8 };
         private string[] _lastLines = new string[600];
 
@@ -114,11 +112,7 @@ namespace NeoActPlugin.Core
                         return false;
                     }
                 }
-                if (_region == "Global")
-                    _currentAddress = FollowPointerChain(_pid.Value, _baseAddress, _offsets);
-
-                else if (_region == "Taiwan" || _region == "Japan")
-                    _currentAddress = FollowPointerChain(_pid.Value, _baseAddress, _offsetsTWJP);
+                _currentAddress = FollowPointerChain(_pid.Value, _baseAddress, _offsetsTWJP);
 
                 if (_currentAddress == IntPtr.Zero)
                 {

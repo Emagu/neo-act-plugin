@@ -5,38 +5,34 @@ namespace NeoActPlugin.Core
 {
     public class DpsOverlayForm : Form
     {
-        private const int WM_NCHITTEST = 0x84;
-        private const int HTTRANSPARENT = -1;
-        private const int HTCAPTION = 2; // 標題列區域，可以拖曳用
         protected override CreateParams CreateParams
         {
             get
             {
                 const int CS_NOCLOSE = 0x200;
+                const int WS_EX_LAYERED = 0x80000;
+                const int WS_EX_TRANSPARENT = 0x20;
+
                 CreateParams cp = base.CreateParams;
                 cp.ClassStyle |= CS_NOCLOSE;
+                cp.ExStyle |= WS_EX_LAYERED | WS_EX_TRANSPARENT;
                 return cp;
             }
         }
-        protected override void WndProc(ref Message m)
+
+        public void SetMousePassThrough(bool enable)
         {
-            base.WndProc(ref m);
-
-            if (m.Msg == WM_NCHITTEST)
+            int exStyle = NativeMethods.GetWindowLong(this.Handle, NativeMethods.GWL_EXSTYLE);
+            if (enable)
             {
-                Point cursorPos = PointToClient(Cursor.Position);
-
-                // 如果滑鼠在標題列高度內(例如0~30px)，允許拖曳
-                if (cursorPos.Y <= SystemInformation.CaptionHeight)
-                {
-                    m.Result = (IntPtr)HTCAPTION;
-                }
-                else
-                {
-                    // 其他地方都透明不吃點擊
-                    m.Result = (IntPtr)HTTRANSPARENT;
-                }
+                exStyle |= NativeMethods.WS_EX_TRANSPARENT;
             }
+            else
+            {
+                exStyle &= ~NativeMethods.WS_EX_TRANSPARENT;
+            }
+            NativeMethods.SetWindowLong(this.Handle, NativeMethods.GWL_EXSTYLE, exStyle);
+            this.Invalidate();
         }
     }
 

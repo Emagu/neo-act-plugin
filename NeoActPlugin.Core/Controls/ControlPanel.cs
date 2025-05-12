@@ -1,7 +1,6 @@
-﻿using NeoActPlugin.Common;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Windows.Forms;
+using NeoActPlugin.Common;
 
 namespace NeoActPlugin.Core
 {
@@ -13,17 +12,6 @@ namespace NeoActPlugin.Core
         TabPage _generalTab, _eventTab;
         bool logResized = false;
         bool logConnected = false;
-
-        static Dictionary<string, string> esNames = new Dictionary<string, string>
-        {
-            { "MiniParseEventSource", Resources.MapESMiniParse },
-        };
-        static Dictionary<string, string> overlayNames = new Dictionary<string, string>
-        {
-            { "LabelOverlay", Resources.MapOverlayLabel },
-            { "MiniParseOverlay", Resources.MapOverlayMiniParse },
-            { "SpellTimerOverlay", Resources.MapOverlaySpellTimer },
-        };
 
         public ControlPanel(TinyIoCContainer container)
         {
@@ -115,29 +103,10 @@ namespace NeoActPlugin.Core
             logBox.Clear();
         }
 
-        private void RegionPicker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            Reader._region = regionPicker.SelectedItem.ToString().Split(' ')[0];
-            PluginMain.WriteLog(LogLevel.Info, "Selected Region: " + Reader._region);
-            Reader _ = new Reader();
-            _.RefreshPointers();
-        }
-
         private class ConfigTabPage : TabPage
         {
             public bool IsOverlay = false;
             public bool IsEventSource = false;
         }
-
-        private void checkBoxFollowLog_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void splitContainer1_Panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
     }
 }

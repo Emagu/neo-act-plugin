@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading;
@@ -14,19 +15,15 @@ namespace NeoActPlugin.Core
     {
         private TinyIoCContainer _container;
         private static ILogger _logger;
-        public static readonly List<string> BossNames = new List<string>
-        {
-            "青龍鬼",
-            "赤龍鬼",
-            "劇毒鞍龍"
-        };
+
+        public static List<string> BossNames => BossManagerForm == null ? new List<string>() : BossManagerForm.BossList;
         TabPage tab;
         Label label;
         ControlPanel panel;
         LogParser LogParser;
-
+        static StringListManagerForm BossManagerForm;
         private System.Windows.Forms.Timer updateTimer;
-        private Form dpsForm;
+        private DpsOverlayForm dpsForm;
         private Panel dpsPanel;
         private Dictionary<string, DpsBarControl> playerControls = new Dictionary<string, DpsBarControl>();
 
@@ -66,9 +63,25 @@ namespace NeoActPlugin.Core
 
                     return;
                 }
+                string filePath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "bossList.txt");
+                WriteLog(LogLevel.Info, "boss file:" + filePath);
+                List<string> myStringList = new List<string>();
+                if (File.Exists(filePath))
+                {
+                    myStringList.AddRange(File.ReadAllLines(filePath).Where(l => !string.IsNullOrWhiteSpace(l)));
+                }
+
+                BossManagerForm = new StringListManagerForm(myStringList, filePath);
+                BossManagerForm.Hide();
 
                 this.panel = new ControlPanel(_container);
                 this.panel.Dock = DockStyle.Fill;
+                this.panel.btnBoss.Click += (s, e) =>
+                {
+                    BossManagerForm.Show();
+                    BossManagerForm.BringToFront();
+                };
+
                 this.tab.Controls.Add(this.panel);
                 this.tab.Name = "Neo ACT Plugin";
 
@@ -121,6 +134,11 @@ namespace NeoActPlugin.Core
                 updateTimer.Tick += UpdateTimer_Tick;
                 updateTimer.Start();
 
+                dpsForm.SetMousePassThrough(false);
+                this.panel.checkBoxShowOverlay.CheckedChanged += (sender, args) =>
+                {
+                    dpsForm.SetMousePassThrough(this.panel.checkBoxShowOverlay.Checked);
+                };
                 this.label.Text = "Initialized.";
             }
             catch (Exception ex)
@@ -211,7 +229,7 @@ namespace NeoActPlugin.Core
 
             foreach (var data in encounter.Items.Values)
             {
-                if (BossNames.Contains(data.Name))
+                if (BossManagerForm.BossList.Contains(data.Name))
                 {
                     encounter.Title = $"[{data.Name}]({DateTime.Now:MMdd-HHmm})";
                     break; // 找到一個就改，不繼續找了
