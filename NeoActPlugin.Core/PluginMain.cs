@@ -14,10 +14,11 @@ namespace NeoActPlugin.Core
     {
         private TinyIoCContainer _container;
         private static ILogger _logger;
-        readonly List<string> BossNames = new List<string>
+        public static readonly List<string> BossNames = new List<string>
         {
             "青龍鬼",
-            "赤龍鬼"
+            "赤龍鬼",
+            "劇毒鞍龍"
         };
         TabPage tab;
         Label label;
@@ -72,19 +73,7 @@ namespace NeoActPlugin.Core
                 this.tab.Name = "Neo ACT Plugin";
 
                 _logger.Log(LogLevel.Info, "Initialized.");
-                /*
-                Updater.Updater.PerformUpdateIfNecessary(PluginDirectory, _container);
-
-                ActGlobals.oFormActMain.UpdateCheckClicked += new FormActMain.NullDelegate(UpdateCheckClicked);
-                if (ActGlobals.oFormActMain.GetAutomaticUpdatesAllowed())
-                {
-                    Thread updateThread = new Thread(new ThreadStart(UpdateCheckClicked));
-                    updateThread.IsBackground = true;
-                    updateThread.Start();
-                }
-
-                UpdateACTTables();
-                */
+                
                 LogParser.Initialize(new ACTWrapper());
 
                 ActGlobals.oFormActMain.LogPathHasCharName = false;
@@ -266,7 +255,6 @@ namespace NeoActPlugin.Core
                 this.label = null;
             }
         }
-
 
         public void UpdateCheckClicked()
         {

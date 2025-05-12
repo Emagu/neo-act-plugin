@@ -1,7 +1,6 @@
 ﻿using Advanced_Combat_Tracker;
 using NeoActPlugin.Common;
 using NeoActPlugin.Core;
-using NeoActPlugin.Updater;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,8 +43,7 @@ namespace NeoActPlugin
             this.pluginScreenSpace = pluginScreenSpace;
             this.pluginStatusText = pluginStatusText;
 
-            if (!SanityChecker.LoadSaneAssembly("NeoActPlugin.Common") || !SanityChecker.LoadSaneAssembly("NeoActPlugin.Core") ||
-                !SanityChecker.LoadSaneAssembly("NeoActPlugin.Updater"))
+            if (!SanityChecker.LoadSaneAssembly("NeoActPlugin.Common") || !SanityChecker.LoadSaneAssembly("NeoActPlugin.Core"))
             {
                 pluginStatusText.Text = Resources.FailedToLoadCommon;
                 return;
@@ -74,16 +72,6 @@ namespace NeoActPlugin
             pluginStatusText.Text = Resources.InitCef;
 
             SanityChecker.CheckDependencyVersions(logger);
-
-            try
-            {
-                CurlWrapper.Init(pluginDirectory);
-            }
-            catch (Exception ex)
-            {
-                logger.Log(LogLevel.Error, ex.ToString());
-                ActGlobals.oFormActMain.WriteDebugLog(ex.ToString());
-            }
 
             FinishInit(container);
         }

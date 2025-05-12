@@ -88,11 +88,6 @@
       <Name>NeoActPlugin.Core</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\NeoActPlugin.Updater\NeoActPlugin.Updater.csproj">
-      <Project>{EB4B99E9-B101-427F-94A6-84F8A9500685}</Project>
-      <Name>NeoActPlugin.Updater</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

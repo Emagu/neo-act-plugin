@@ -343,6 +343,20 @@ namespace NeoActPlugin.Core
         }
         protected override void AddAction(DateTime timestamp, string actor, string target, string skill, string damage = "", bool isCirt = false)
         {
+            var IsBoss = false;
+            foreach (var name in PluginMain.BossNames)
+            {
+                if (target.Contains(name))
+                { 
+                    IsBoss = true;
+                }
+            }
+
+            if (!IsBoss)
+            {
+                return;
+            }
+
             if (_ACT.SetEncounter(timestamp, actor, target))
             {
                 if (string.IsNullOrEmpty(damage))
