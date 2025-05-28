@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Web.UI.WebControls;
+using System.Xml.Linq;
 using NeoActPlugin.Common;
 
 namespace NeoActPlugin.Core
@@ -343,15 +344,8 @@ namespace NeoActPlugin.Core
         }
         protected override void AddAction(DateTime timestamp, string actor, string target, string skill, string damage = "", bool isCirt = false)
         {
-            var IsBoss = false;
-            foreach (var name in PluginMain.BossNames)
-            {
-                if (target.Contains(name))
-                { 
-                    IsBoss = true;
-                }
-            }
-
+            var IsBoss = PluginMain.BossManagerForm.IsBoss(target);
+            
             if (!IsBoss)
             {
                 return;

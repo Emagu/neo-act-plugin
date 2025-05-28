@@ -12,10 +12,6 @@ namespace NeoActPlugin
             @"(?<name>.+?), Version=(?<version>.+?), Culture=(?<culture>.+?), PublicKeyToken=(?<pubkey>.+)",
             RegexOptions.Compiled);
 
-        static readonly List<string> NeoActPluginFiles = new List<string> {
-            "NeoActPlugin.Common", "NeoActPlugin.Core", "NeoActPlugin.Updater"
-        };
-
         public List<string> Directories { get; set; }
         private Dictionary<string, Assembly> assemblyCache = new Dictionary<string, Assembly>();
 

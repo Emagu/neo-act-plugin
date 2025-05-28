@@ -9,7 +9,7 @@ namespace NeoActPlugin.Core
         private ListBox listBox;
         private TextBox inputBox;
         private Button addButton, deleteButton, saveButton;
-        public List<string> BossList;
+        private List<string> BossList;
         private string filePath;
 
         public StringListManagerForm(List<string> stringList, string filePath)
@@ -52,6 +52,17 @@ namespace NeoActPlugin.Core
             RefreshListBox();
         }
 
+        public bool IsBoss(string target)
+        {
+            foreach (var name in BossList)
+            {
+                if (target.Contains(name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         private void AddButton_Click(object sender, EventArgs e)
         {
             var text = inputBox.Text.Trim();

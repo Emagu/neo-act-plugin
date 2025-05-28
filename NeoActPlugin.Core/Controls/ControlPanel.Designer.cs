@@ -97,7 +97,6 @@ namespace NeoActPlugin.Core
             this.PerformLayout();
 
         }
-        private NeoActPlugin.Core.TabControlExt tabControl;
         private System.Windows.Forms.TabPage tabPageMain;
         private System.Windows.Forms.GroupBox groupBox2;
         private Label label_ListEmpty;

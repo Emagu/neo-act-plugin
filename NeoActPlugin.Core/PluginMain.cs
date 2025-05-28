@@ -16,12 +16,11 @@ namespace NeoActPlugin.Core
         private TinyIoCContainer _container;
         private static ILogger _logger;
 
-        public static List<string> BossNames => BossManagerForm == null ? new List<string>() : BossManagerForm.BossList;
         TabPage tab;
         Label label;
         ControlPanel panel;
         LogParser LogParser;
-        static StringListManagerForm BossManagerForm;
+        public static StringListManagerForm BossManagerForm;
         private System.Windows.Forms.Timer updateTimer;
         private DpsOverlayForm dpsForm;
         private Panel dpsPanel;
@@ -229,7 +228,7 @@ namespace NeoActPlugin.Core
 
             foreach (var data in encounter.Items.Values)
             {
-                if (BossManagerForm.BossList.Contains(data.Name))
+                if (BossManagerForm.IsBoss(data.Name))
                 {
                     encounter.Title = $"[{data.Name}]({DateTime.Now:MMdd-HHmm})";
                     break; // 找到一個就改，不繼續找了
